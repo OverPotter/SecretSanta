@@ -1,4 +1,3 @@
-import json
 import re
 
 from aiogram.dispatcher.filters import Command
@@ -8,8 +7,9 @@ from aiogram.dispatcher.filters import Text
 
 from core.dispatcher import dp, bot
 from config import users, admin_id, admin_chat_id
-import core.keyboard as kb
 from core.FSM_state import RegistrationStage
+from core.json_handler import write_json
+import core.keyboard as kb
 
 
 @dp.message_handler(commands=["start", "go"])
@@ -51,29 +51,17 @@ async def check_fullname(message: Message, state: FSMContext):
         return
 
     await state.update_data(full_name=message.text.encode("utf-8").decode("utf-8"))
-    await bot.send_message(
-        message.chat.id,
-        "✅ Запись о <u><b>ФИО</b></u> успешно внесена!\n",
-        reply_markup=kb.cancel_keyboard
-    )
-    await RegistrationStage.next()
+    await state.update_data(chat_id=message.chat.id)
+    await confirmation(message, state)
 
 
-@dp.message_handler(state=RegistrationStage.registration_end, content_types=ContentTypes.TEXT)
 async def confirmation(message: Message, state: FSMContext):
-    await bot.send_message(
-        message.chat.id,
-        "✅ Запись!\n",
-        reply_markup=kb.cancel_keyboard
-    )
-
-    path_to_user_json = "Temp\\" + str(message.chat.id) + ".json"
+    path_to_user_json = "users.json"
     data = await state.get_data()
 
-    with open(path_to_user_json, "w") as user_json:
-        json.dump(data, user_json)
+    write_json(path_to_user_json, data)
 
-    await bot.send_message(message.chat.id, "✅ Анкета успешно заполнена, после проверки вы получите ответ.")
+    await bot.send_message(message.chat.id, "✅ Ваш запрос отправлен, после проверки вы получите ответ.")
     await bot.send_message(
         admin_chat_id,
         f"Поступила заявка от @{message.from_user.username}\n\n"
@@ -89,7 +77,6 @@ async def confirmation(message: Message, state: FSMContext):
 @dp.callback_query_handler(kb.reg_callback.filter(status="0"))
 async def decline(call: CallbackQuery, callback_data: dict):
     await call.answer()
-    print(call.message.message_id, "decl")
     await bot.edit_message_text(
         "Заявка отклонена.", admin_chat_id, call.message.message_id
     )
@@ -98,17 +85,13 @@ async def decline(call: CallbackQuery, callback_data: dict):
 
 @dp.callback_query_handler(kb.reg_callback.filter(status="1"))
 async def accept(call: CallbackQuery, callback_data: dict):
-    path_to_user_json = "Temp\\" + str(callback_data.get("chat_id")) + ".json"
     await call.answer()
-    print(call.message.message_id, "conf")
     await bot.edit_message_text(
         "Заявка одобрена.", admin_chat_id, call.message.message_id
     )
     await bot.send_message(
         int(callback_data.get("chat_id")), "Добро пожаловать в команду."
     )
-
-    # os.remove(path_to_user_json)
 
 
 @dp.message_handler(Command('sendall'))

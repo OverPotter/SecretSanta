@@ -3,3 +3,5 @@ config.py
 /.idea
 /venv
 /Temp/*
+users.json
+test.py
