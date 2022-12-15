@@ -6,10 +6,13 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 
 from core.dispatcher import dp, bot
-from config import users, admin_id, admin_chat_id
+from config import admin_id, admin_chat_id, IMG_PATH
 from core.FSM_state import RegistrationStage
-from core.json_handler import write_json
+from core.json_handler import JsonHandler
 import core.keyboard as kb
+
+
+Santa_support = JsonHandler()
 
 
 @dp.message_handler(commands=["start", "go"])
@@ -36,7 +39,7 @@ async def registration_start(message: Message, state: FSMContext):
         message.chat.id,
         f"Привет {message.from_user.first_name}, "
         f"пожалуйста ввидите ваше имя и фамилию.\n"
-        f"Пример: Айзек Азимов",
+        f"Пример: Isaac Asimov",
         reply_markup=kb.cancel_keyboard
     )
     await RegistrationStage.waiting_user_fullname.set()
@@ -56,10 +59,8 @@ async def check_fullname(message: Message, state: FSMContext):
 
 
 async def confirmation(message: Message, state: FSMContext):
-    path_to_user_json = "users.json"
     data = await state.get_data()
-
-    write_json(path_to_user_json, data)
+    Santa_support.write_json(data)
 
     await bot.send_message(message.chat.id, "✅ Ваш запрос отправлен, после проверки вы получите ответ.")
     await bot.send_message(
@@ -94,25 +95,16 @@ async def accept(call: CallbackQuery, callback_data: dict):
     )
 
 
-@dp.message_handler(Command('sendall'))
-async def send_all(message: Message):
-    if message.chat.id == admin_id:
-        await message.answer('Start')
-        for i in users:
-            await bot.send_message(i, message.text[message.text.find(' '):])
-
-        await message.answer('Done')
-
-    else:
-        await message.answer('Error')
-
-
 @dp.message_handler(Command('sendallwp'))
 async def send_all(message: Message):
     if message.chat.id == admin_id:
         await message.answer('Start')
-        for i in users:
-            await bot.send_photo(i, open('../img/Santa.jpg', 'rb'), message.text[message.text.find(' '):])
+        Santa_support.users_list = Santa_support.get_users_list()
+        for user in Santa_support.get_users_list():
+            Santa_support.secret_Santa(user)
+        for secret in Santa_support.secret_Santa_list:
+            for user_id, secret_message in secret.items():
+                await bot.send_photo(user_id, open(IMG_PATH, 'rb'), secret_message)
 
         await message.answer('Done')
 
