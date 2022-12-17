@@ -23,6 +23,11 @@ class JsonHandler:
             users_list = json.load(f)["users"]
             return users_list
 
+    def get_id_list(self):
+        with open(self.path_to_json, 'r') as f:
+            id_list = json.load(f)["chat_id"]
+            return id_list
+
     def secret_Santa(self, to_whom):
         who = random.choice(self.users_list)
         if to_whom["chat_id"] == who["chat_id"]:
