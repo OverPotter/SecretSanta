@@ -19,8 +19,8 @@ Santa_support = JsonHandler()
 async def welcome(message: Message):
     await bot.send_message(
         message.chat.id,
-        f"<b>Добро пожаловать, {message.from_user.username}!</b>\n\n"
-        f"Чтобы пройти регистрацию, нажмите на кнопку <b>Зарегистрироваться</b>.",
+        f"<b>С наступающим Новым Годом, {message.from_user.username}!</b>\n\n"
+        f"Чтобы принять участие в секретном Санте, нажмите на кнопку <b>Зарегистрироваться</b>.",
         reply_markup=kb.reg_keyboard,
     )
 
@@ -88,10 +88,13 @@ async def decline(call: CallbackQuery, callback_data: dict):
 async def accept(call: CallbackQuery, callback_data: dict):
     await call.answer()
     await bot.edit_message_text(
-        "Заявка одобрена.", admin_chat_id, call.message.message_id
+        "Заявка одобрена.",
+        admin_chat_id, call.message.message_id
     )
     await bot.send_message(
-        int(callback_data.get("chat_id")), "Добро пожаловать в команду."
+        int(callback_data.get("chat_id")), "Ваша заявка на участие принята."
+                                           "\nКак только собирутся все участники, "
+                                           "вы узнаете кого вам предстоит осчастливить)"
     )
 
 
@@ -110,3 +113,11 @@ async def send_all(message: Message):
 
     else:
         await message.answer('You are not a God!')
+
+
+@dp.message_handler(Command('getusers'))
+async def get_users(message: Message):
+    if message.chat.id == admin_id:
+        users = Santa_support.get_users_list()
+        result = [user['full_name'] for user in users]
+        await bot.send_message(admin_id, '\n'.join(result))
