@@ -24,9 +24,8 @@ class JsonHandler:
             return users_list
 
     def get_id_list(self):
-        with open(self.path_to_json, 'r') as f:
-            id_list = json.load(f)["chat_id"]
-            return id_list
+        users_list = self.get_users_list()
+        return [user['chat_id'] for user in users_list]
 
     def secret_Santa(self, to_whom):
         who = random.choice(self.users_list)
