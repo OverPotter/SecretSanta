@@ -11,7 +11,6 @@ from core.FSM_state import RegistrationStage
 from core.json_handler import JsonHandler
 import core.keyboard as kb
 
-
 Santa_support = JsonHandler()
 
 
@@ -29,7 +28,6 @@ async def welcome(message: Message):
             message.chat.id,
             "Вы уже зарегистрированы. Подождите остальных и не перегружайте мой комп, у меня нет сервера)))"
         )
-
 
 
 @dp.message_handler(Text(equals="Отмена"), state="*")
@@ -114,7 +112,7 @@ async def send_all(message: Message):
             Santa_support.secret_Santa(user)
         for secret in Santa_support.secret_Santa_list:
             for user_id, secret_message in secret.items():
-                await bot.send_photo(user_id, open(IMG_PATH, 'rb'), secret_message)
+                await bot.send_photo(user_id, open(IMG_PATH, 'rb'), f"Ты должен осчастливить: {secret_message}")
 
         await message.answer('Done')
 
