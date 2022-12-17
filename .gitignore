@@ -1,2 +1,7 @@
 config.py
+/__pycache__
 /.idea
+/venv
+/Temp/*
+users.json
+test.py
