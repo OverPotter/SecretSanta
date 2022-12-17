@@ -17,12 +17,19 @@ Santa_support = JsonHandler()
 
 @dp.message_handler(commands=["start", "go"])
 async def welcome(message: Message):
-    await bot.send_message(
-        message.chat.id,
-        f"<b>С наступающим Новым Годом, {message.from_user.username}!</b>\n\n"
-        f"Чтобы принять участие в секретном Санте, нажмите на кнопку <b>Зарегистрироваться</b>.",
-        reply_markup=kb.reg_keyboard,
-    )
+    if message.chat.id not in Santa_support.get_id_list():
+        await bot.send_message(
+            message.chat.id,
+            f"<b>С наступающим Новым Годом, {message.from_user.username}!</b>\n\n"
+            f"Чтобы принять участие в секретном Санте, нажмите на кнопку <b>Зарегистрироваться</b>.",
+            reply_markup=kb.reg_keyboard,
+        )
+    else:
+        await bot.send_message(
+            message.chat.id,
+            "Вы уже зарегистрированы. Подождите остальных и не перегружайте мой комп, у меня нет сервера)))"
+        )
+
 
 
 @dp.message_handler(Text(equals="Отмена"), state="*")
